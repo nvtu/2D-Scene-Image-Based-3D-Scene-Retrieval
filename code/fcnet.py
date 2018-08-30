@@ -22,8 +22,7 @@ def get_activate_function(func_name):
 
 class fcnet(nn.Module):
     
-    def __init__(self, batch_size, in_dim, hidden_dim, out_dim, args):
-        self.args = args
+    def __init__(self, batch_size, in_dim, hidden_dim, out_dim):
         self.batch_size = batch_size
 
         # Network layer definition
@@ -33,7 +32,7 @@ class fcnet(nn.Module):
         self.fc1 = fully_block(in_dim, hidden_dim)
         self.dropout1 = nn.Dropout(0.2)
         self.bn1 = nn.BatchNorm1d(hidden_dim)
-        self.activate_func1 = get_activate_function(args.activate_func)
+        self.activate_func1 = get_activate_function('elu')
 
         self.fc2 = fully_block(hidden_dim, out_dim)
         self.softmax = nn.Softmax()
@@ -41,14 +40,12 @@ class fcnet(nn.Module):
 
     def forward(self, x):
         out = x
-        if self.args.batch_norm:
-            out = self.bn0(out)
+        out = self.bn0(out)
         out = self.dropout0(out)
         
         out = self.fc1(out)
         out = self.activate_func1(out)
-        if self.args.batch_norm:
-            out = self.bn1(out)
+        out = self.bn1(out)
         out = self.dropout1(out)
 
         out = self.fc2(out)
@@ -67,10 +64,9 @@ class fully_block(nn.Module):
         return self.fc(x)
     
 
-def save_checkpoint(N, optim, args, score, checkpoint_dir, filename):
+def save_checkpoint(N, optim, score, checkpoint_dir, filename):
     state = {'Net': N,
             'optim': optim,
-            'args': args,
             'score': score}
     torch.save(state, osp.join(checkpoint_dir, filename))
 
@@ -78,9 +74,3 @@ def save_checkpoint(N, optim, args, score, checkpoint_dir, filename):
 def load_checkpoint(checkpoint_dir, filename):
     checkpoint = torch.load(osp.join(checkpoint_dir, filename))
     return checkpoint
-
-
-def train_fcnet(N, data, batch_size, device):
-    iters = int(data.cnt_test) / batch_size
-    for i in range(iters):
-        print("Do something")
