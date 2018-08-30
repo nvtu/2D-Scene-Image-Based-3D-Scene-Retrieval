@@ -27,12 +27,13 @@ class fcnet(nn.Module):
         self.batch_size = batch_size
 
         # Network layer definition
+        self.dropout = nn.Dropout(0.2)
+        self.activate_func = get_activate_function('elu')
+
         self.bn0 = nn.BatchNorm1d(in_dim)
         
         self.fc1 = fully_block(in_dim, hidden_dim)
-        self.dropout = nn.Dropout(0.2)
         self.bn1 = nn.BatchNorm1d(hidden_dim)
-        self.activate_func = get_activate_function('elu')
 
         self.fc2 = fully_block(hidden_dim, hidden_dim)
         self.bn2 = nn.BatchNorm1d(hidden_dim)

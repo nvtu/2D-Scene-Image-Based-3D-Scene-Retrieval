@@ -7,7 +7,7 @@ import torch.nn as nn
 
 
 if __name__ == '__main__':
-    data_path = osp.join(os.getcwd(), '..', 'data', 'landmark', 'features', 'attributes')
+    combined_path = osp.join(os.getcwd(), '..', 'data', 'landmark', 'features', 'combined_data')
     json_path = osp.join(os.getcwd(), '..', 'data', 'landmark', 'train_val2018.json')
     checkpoint_dir = osp.join(os.getcwd(), '..', 'data', 'landmark', 'checkpoint')
 
@@ -28,16 +28,14 @@ if __name__ == '__main__':
     print(device)
 
     N = fcnet(batch_size, in_dim, hidden_dim, out_dim)
-    data = DataLoader(batch_size, data_path, json_path)
+    data = DataLoader(batch_size, combined_path)
     N = N.to(device)
     cost_func = nn.BCELoss()
     optim = torch.optim.Adam(N.parameters(), lr=learning_rate)
 
-
-    begin_step = 0
     best_score = 0
 
-    for i in tqdm(range(begin_step, total_steps)):
+    for i in tqdm(range(total_steps)):
         x, y = data.next_batch()
         x = torch.Tensor(x).to(device)
         y = torch. Tensor(y).to(device)
@@ -48,10 +46,21 @@ if __name__ == '__main__':
         N.zero_grad()
 
         if i % print_step == 0:
-            _, predicts = out.sort(1)
-            predicts = predicts[:,-3:]
-            ground_truth = y.argmax(1)
-            match = np.array([True if ground_truth[j] in predicts[j] else False for j in range(batch_size)]).sum()
-            print("Iters: {}  - Loss: {} - Accuracy: {}".format(i, loss, match))
-        if i % save_step == 0:
-            save_checkpoint(N, optim, match, checkpoint_dir, '{}_{}'.format(i, match))
+            cnt = 0
+            matched = []
+            while cnt < data.cnt_test:
+                x_test, y_test = data.next_test()
+                cnt += len(y_test)
+                result = N(x_test)
+                _, predicts = result.sort(1)
+                predicts = predicts[:,-3:]
+                ground_truth = y_test.argmax(1)
+
+                m = [True if ground_truth[j] in predicts[j] else False for j in range(batch_size)]
+                matched += m
+            score = matched.sum() * 1.0 / data.cnt_test
+            print("Iters: {}  - Loss: {} - Accuracy: {}".format(i, loss, score))
+
+            if score > best_score:
+                best_score = score
+                save_checkpoint(N, optim, score, checkpoint_dir, "best_weights.chohuu")
