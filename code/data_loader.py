@@ -1,4 +1,5 @@
 import numpy as np
+import os.path
 import json
 import os.path as osp
 import os
@@ -8,7 +9,14 @@ class DataLoader():
     def __init__(self, batch_size, data_path, json_fpath):
         self.batch_size = batch_size
         self.data_path = data_path
-        self.data_info = self.__parse_json_info(json_fpath)
+        self.data_info = np.array(self.__parse_json_info(json_fpath))
+#        self.x, self.y = self.__load_data(self.data_info)
+#        np.save(self.data_path + '/../chocamx', self.x)
+#        np.save(self.data_path + '/../chocamy', self.y)
+        self.x = np.load(self.data_path + '/../chocamx.npy')
+        self.y = np.load(self.data_path + '/../chocamy.npy')
+
+
         self.cnt_total = len(self.data_info)
         self.cnt_test = int(self.cnt_total / 5.0) # Keep the ratio between train/test data split to be 80/20
         self.cnt_train = self.cnt_total - self.cnt_test
@@ -31,7 +39,7 @@ class DataLoader():
         num_data = len(y)
         onehot = np.zeros((num_data, num_cls), dtype=np.uint8)   
         for i in range(num_data):
-            onehot[i][num_data[i]] = 1
+            onehot[i][y[i]] = 1
         return onehot
 
 
@@ -41,8 +49,9 @@ class DataLoader():
         y = np.empty(num_data, dtype=np.uint8)
         for i, data in enumerate(data_list):
             id, category = int(data['id']), int(data['category'])
-            feature_data_path = osp.join(self.data_path, str(category), str(id))
-            _data = np.load(feature_data_path)
+            feature_data_path = osp.join(self.data_path, str(category), str(id) + '.npy')
+            if os.path.isfile(feature_data_path):
+                _data = np.load(feature_data_path)
             x[i] = _data
             y[i] = category
         y = self.__to_one_hot(y, num_cls)
@@ -58,8 +67,7 @@ class DataLoader():
             end_index = start_index + self.batch_size
         index = self.permutation[start_index:end_index]
         self.pt_train_index = end_index
-        return self.__load_data(self.data_info[index])
-    
+        return self.x[index], self.y[index]
 
     def next_test(self):
         start_index = self.pt_test_index
@@ -69,4 +77,4 @@ class DataLoader():
         end_index = start_index + self.batch_size
         self.pt_test_index = end_index
         index = self.permutation[start_index:end_index]
-        return self.__load_data(self.data_info[index])
+        return self.x[index], self.y[index]

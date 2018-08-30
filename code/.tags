@@ -1,0 +1,45 @@
+!_TAG_FILE_FORMAT	2	/extended format; --format=1 will not append ;" to lines/
+!_TAG_FILE_SORTED	1	/0=unsorted, 1=sorted, 2=foldcase/
+!_TAG_PROGRAM_AUTHOR	Darren Hiebert	/dhiebert@users.sourceforge.net/
+!_TAG_PROGRAM_NAME	Exuberant Ctags	//
+!_TAG_PROGRAM_URL	http://ctags.sourceforge.net	/official site/
+!_TAG_PROGRAM_VERSION	5.9~svn20110310	//
+DataLoader	data_loader.py	/^class DataLoader():$/;"	c
+N	train_fcnet.py	/^    N = N.to(device)$/;"	v
+N	train_fcnet.py	/^    N = fcnet(batch_size, in_dim, hidden_dim, out_dim)$/;"	v
+__init__	data_loader.py	/^    def __init__(self, batch_size, data_path, json_fpath):$/;"	m	class:DataLoader
+__init__	fcnet.py	/^    def __init__(self, batch_size, in_dim, hidden_dim, out_dim):$/;"	m	class:fcnet
+__init__	fcnet.py	/^    def __init__(self, in_dim, out_dim):$/;"	m	class:fully_block
+__load_data	data_loader.py	/^    def __load_data(self, data_list, in_dim=102, num_cls=103):$/;"	m	class:DataLoader	file:
+__parse_json_info	data_loader.py	/^    def __parse_json_info(self, json_fpath):$/;"	m	class:DataLoader	file:
+__to_one_hot	data_loader.py	/^    def __to_one_hot(self, y, num_cls):$/;"	m	class:DataLoader	file:
+batch_size	train_fcnet.py	/^    batch_size = 128$/;"	v
+begin_step	train_fcnet.py	/^    begin_step = 0$/;"	v
+best_score	train_fcnet.py	/^    best_score = 0$/;"	v
+cost_func	train_fcnet.py	/^    cost_func = nn.BCELoss()$/;"	v
+data	train_fcnet.py	/^    data = DataLoader(batch_size, data_path, json_path)$/;"	v
+data_path	train_fcnet.py	/^    data_path = osp.join(os.getcwd(), '..', 'data', 'landmark', 'features', 'attributes')$/;"	v
+device	train_fcnet.py	/^        device = 'cuda'$/;"	v
+device	train_fcnet.py	/^    device = 'cpu'$/;"	v
+fcnet	fcnet.py	/^class fcnet(nn.Module):$/;"	c
+forward	fcnet.py	/^    def forward(self, x):$/;"	m	class:fcnet
+forward	fcnet.py	/^    def forward(self, x):$/;"	m	class:fully_block
+fully_block	fcnet.py	/^class fully_block(nn.Module):$/;"	c
+get_activate_function	fcnet.py	/^def get_activate_function(func_name):$/;"	f
+hidden_dim	train_fcnet.py	/^    hidden_dim = 200$/;"	v
+in_dim	train_fcnet.py	/^    in_dim = 102$/;"	v
+json_path	train_fcnet.py	/^    json_path = osp.join(os.getcwd(), '..', 'data', 'landmark', 'train_val2018.json')$/;"	v
+learning_rate	train_fcnet.py	/^    learning_rate = 1e-4$/;"	v
+load_checkpoint	fcnet.py	/^def load_checkpoint(checkpoint_dir, filename):$/;"	f
+loss	train_fcnet.py	/^        loss = cost_func(out, y)$/;"	v
+next_batch	data_loader.py	/^    def next_batch(self):$/;"	m	class:DataLoader
+next_test	data_loader.py	/^    def next_test(self):$/;"	m	class:DataLoader
+optim	train_fcnet.py	/^    optim = torch.optim.Adam(N.parameters(), lr=learning_rate)$/;"	v
+out	train_fcnet.py	/^        out = N(x)$/;"	v
+out_dim	train_fcnet.py	/^    out_dim = 103$/;"	v
+print_step	train_fcnet.py	/^    print_step = 1000$/;"	v
+save_checkpoint	fcnet.py	/^def save_checkpoint(N, optim, score, checkpoint_dir, filename):$/;"	f
+save_step	train_fcnet.py	/^    save_step = 1000$/;"	v
+total_steps	train_fcnet.py	/^    total_steps = 256000$/;"	v
+x	train_fcnet.py	/^        x = torch.Tensor(x).to(device)$/;"	v
+y	train_fcnet.py	/^        y = torch. Tensor(y).to(device)$/;"	v

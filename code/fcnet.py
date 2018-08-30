@@ -23,32 +23,40 @@ def get_activate_function(func_name):
 class fcnet(nn.Module):
     
     def __init__(self, batch_size, in_dim, hidden_dim, out_dim):
+        super(fcnet, self).__init__()
         self.batch_size = batch_size
 
         # Network layer definition
         self.bn0 = nn.BatchNorm1d(in_dim)
-        self.dropout0 = nn.Dropout(0.2)
         
         self.fc1 = fully_block(in_dim, hidden_dim)
-        self.dropout1 = nn.Dropout(0.2)
+        self.dropout = nn.Dropout(0.2)
         self.bn1 = nn.BatchNorm1d(hidden_dim)
-        self.activate_func1 = get_activate_function('elu')
+        self.activate_func = get_activate_function('elu')
 
-        self.fc2 = fully_block(hidden_dim, out_dim)
+        self.fc2 = fully_block(hidden_dim, hidden_dim)
+        self.bn2 = nn.BatchNorm1d(hidden_dim)
+
+        self.fc3 = fully_block(hidden_dim, out_dim)
         self.softmax = nn.Softmax()
 
 
     def forward(self, x):
         out = x
         out = self.bn0(out)
-        out = self.dropout0(out)
+#        out = self.dropout(out)
         
         out = self.fc1(out)
-        out = self.activate_func1(out)
+        out = self.activate_func(out)
         out = self.bn1(out)
-        out = self.dropout1(out)
+#        out = self.dropout(out)
 
         out = self.fc2(out)
+        out = self.activate_func(out)
+        out = self.bn2(out)
+#        out = self.dropout(out)
+
+        out = self.fc3(out)
         out = self.softmax(out)
         return out
 
