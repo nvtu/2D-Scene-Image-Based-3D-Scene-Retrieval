@@ -46,17 +46,17 @@ if __name__ == '__main__':
         if i % print_step == 0:
             cnt = 0
             matched = []
-            while cnt < data.cnt_test:
-                x_test, y_test = data.next_test()
-                cnt += len(y_test)
-                result = N(x_test)
+            while cnt < data.cnt_val:
+                x_val, y_val = data.next_val()
+                cnt += len(y_val)
+                result = N(x_val)
                 _, predicts = result.sort(1)
                 predicts = predicts[:,-3:]
-                ground_truth = y_test.argmax(1)
+                ground_truth = y_val.argmax(1)
 
                 m = [True if ground_truth[j] in predicts[j] else False for j in range(batch_size)]
                 matched += m
-            score = matched.sum() * 1.0 / data.cnt_test
+            score = np.array(matched).sum() * 1.0 / data.cnt_val
             print("Iters: {}  - Loss: {} - Accuracy: {}".format(i, loss, score))
 
             if score > best_score:
