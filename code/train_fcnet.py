@@ -8,7 +8,7 @@ import torch.nn as nn
 def fullTest(N, top):
     cnt = 0
     matched = []
-    while cnt < data.cnt_test:
+    while cnt < data.cnt_val:
         x_test, y_test = data.next_test()
         x_test = torch.Tensor(x_test).to(device)
         y_test = torch. Tensor(y_test).to(device)
@@ -20,7 +20,7 @@ def fullTest(N, top):
 
         m = [True if ground_truth[j] in predicts[j] else False for j in range(ground_truth.__len__())]
         matched += m
-    score = np.array(matched).sum() * 1.0 / data.cnt_test
+    score = np.array(matched).sum() * 1.0 / data.cnt_val
     return score
 
 def calcTrainScore(N, top):
