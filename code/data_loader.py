@@ -17,6 +17,8 @@ class DataLoader():
             self.cnt_total = len(self.y)
             self.cnt_val = int(self.cnt_total / 5.0) # Keep the ratio between train/test data split to be 80/20
             self.cnt_train = self.cnt_total - self.cnt_val
+
+            self.pt_train_index = self.cnt_val
         else:
             self.x = np.load(osp.join(self.data_path, 'x_attributes.npy'))
             self.cnt_total = self.x.shape[0]
@@ -25,7 +27,6 @@ class DataLoader():
         self.permutation = np.random.permutation(self.cnt_total)
 
         # Some variables determine the current data pointer index
-        self.pt_train_index = self.cnt_val
         self.pt_test_index = 0
         self.pt_val_index = 0
 
