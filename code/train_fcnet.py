@@ -25,8 +25,6 @@ if __name__ == '__main__':
     if torch.cuda.is_available():
         device = 'cuda'
 
-    print(device)
-
     N = fcnet(batch_size, in_dim, hidden_dim, out_dim)
     data = DataLoader(batch_size, combined_path)
     N = N.to(device)
