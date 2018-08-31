@@ -5,7 +5,6 @@ import torch.nn.functional as F
 from torch.autograd import Variable
 import os.path as osp
 
-
 def get_activate_function(func_name):
     if func_name == 'leaky':
         func = F.leaky_relu
@@ -27,7 +26,7 @@ class fcnet(nn.Module):
         self.batch_size = batch_size
 
         # Network layer definition
-        self.dropout = nn.Dropout(0.5)
+        self.dropout = nn.Dropout(0.2)
         self.activate_func = get_activate_function('elu')
 
         self.bn0 = nn.BatchNorm1d(in_dim)
@@ -60,8 +59,8 @@ class fcnet(nn.Module):
         #out = self.dropout(out)
         out = self.fc3(out)
 #        out = self.activate_func(out)
-#        out = self.softmax(out)
-        out = self.sigmoid(out)
+        out = self.softmax(out)
+#        out = self.sigmoid(out)
         return out
 
 

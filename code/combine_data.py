@@ -2,7 +2,6 @@ import numpy as np
 import os.path as osp
 import json
 import os
-count = 0
 
 
 def load_data(data_path, data_list, in_dim=102, num_cls=103):
@@ -10,13 +9,10 @@ def load_data(data_path, data_list, in_dim=102, num_cls=103):
     x = np.empty((num_data, in_dim), dtype=np.float)
     y = np.empty(num_data, dtype=np.uint8)
     for i, data in enumerate(data_list):
-        global count
         id, category = int(data['id']), int(data['category'])
         feature_data_path = osp.join(data_path, str(category), str(id) + '.npy')
         if osp.isfile(feature_data_path):
             _data = np.load(feature_data_path)
-        else:
-            count += 1
         x[i] = _data
         y[i] = category
     y = to_one_hot(y, num_cls)
