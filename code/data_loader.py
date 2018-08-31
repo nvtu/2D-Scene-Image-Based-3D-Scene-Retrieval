@@ -11,7 +11,7 @@ class DataLoader():
         self.data_path = data_path
 
         self.x = np.load(osp.join(self.data_path, 'x_attributes.npy'))
-        self.y = np.load(osp.join(self.data_path + 'y_attributes.npy'))
+        self.y = np.load(osp.join(self.data_path, 'y_attributes.npy'))
 
         self.cnt_total = len(self.y)
         self.cnt_test = int(self.cnt_total / 5.0) # Keep the ratio between train/test data split to be 80/20

@@ -27,7 +27,7 @@ class fcnet(nn.Module):
         self.batch_size = batch_size
 
         # Network layer definition
-        self.dropout = nn.Dropout(0.2)
+        self.dropout = nn.Dropout(0.5)
         self.activate_func = get_activate_function('elu')
 
         self.bn0 = nn.BatchNorm1d(in_dim)
@@ -40,25 +40,28 @@ class fcnet(nn.Module):
 
         self.fc3 = fully_block(hidden_dim, out_dim)
         self.softmax = nn.Softmax()
+        self.sigmoid = nn.Sigmoid()
 
 
     def forward(self, x):
         out = x
+
         out = self.bn0(out)
-#        out = self.dropout(out)
-        
+        #out = self.dropout(out)
         out = self.fc1(out)
         out = self.activate_func(out)
         out = self.bn1(out)
-#        out = self.dropout(out)
 
+        #out = self.dropout(out)
         out = self.fc2(out)
         out = self.activate_func(out)
         out = self.bn2(out)
-#        out = self.dropout(out)
 
+        #out = self.dropout(out)
         out = self.fc3(out)
-        out = self.softmax(out)
+#        out = self.activate_func(out)
+#        out = self.softmax(out)
+        out = self.sigmoid(out)
         return out
 
 
