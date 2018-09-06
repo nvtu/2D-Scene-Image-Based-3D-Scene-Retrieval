@@ -19,12 +19,13 @@ class DataLoader():
             self.cnt_train = self.cnt_total - self.cnt_val
 
             self.pt_train_index = self.cnt_val
+            self.permutation = np.random.permutation(self.cnt_total)
         else:
             self.x = np.load(osp.join(self.data_path, 'x_attributes.npy'))
             self.cnt_total = self.x.shape[0]
             self.cnt_test = self.cnt_total
+            self.permutation = [i for i in range(self.cnt_total)]
 
-        self.permutation = np.random.permutation(self.cnt_total)
 
         # Some variables determine the current data pointer index
         self.pt_test_index = 0
@@ -35,8 +36,11 @@ class DataLoader():
         start_index = self.pt_train_index
         end_index = start_index + self.batch_size
         if end_index > self.cnt_total: # May miss data at the end !!!
+            index = self.permutation[start_index:]
             np.random.shuffle(self.permutation[self.cnt_val:self.cnt_total])
+            #np.random.shuffle(self.permutation)
             start_index = self.cnt_val
+            self.pt_train_index = self.cnt_val
             end_index = start_index + self.batch_size
         index = self.permutation[start_index:end_index]
         self.pt_train_index = end_index
@@ -64,4 +68,4 @@ class DataLoader():
             return self.x[index]
         self.pt_test_index = end_index
         index = self.permutation[start_index:end_index]
-        return self.x[index], self.y[index]
+        return self.x[index]

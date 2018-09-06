@@ -15,7 +15,7 @@ def create_argparse():
     return parser
 
 
-def combine_features(data_path, combine_path, in_dim=102):
+def combine_features(data_path, combine_path, in_dim=2048):
     combined_filename = 'x_attributes.npy'
     combine_path = osp.join(combine_path, combined_filename)
     if osp.isfile(combine_path):
@@ -44,12 +44,16 @@ def eval(N, data_path):
     cnt = 0
     results = []
     top = 3
+    device = 'cpu'
+    if torch.cuda.is_available():
+        device = 'cuda'
     while cnt < data.cnt_total:
         x = data.next_test()
         cnt += x.shape[0]
+        x = torch.Tensor(x).to(device)
         out = N(x)
         _, predicts = out.sort(1)
-        predicts = predicts[:,-top:]
+        predicts = predicts[:,-top:].cpu().numpy().tolist()
         results += predicts
     return results
 
@@ -61,7 +65,7 @@ def dump_csv(results, data_path, result_filepath):
         f.write('id,predicted\n')
         for i in range(num_imgs):
             out = results[i]
-            img_name = results[i].split('.')[0]
+            img_name = list_imgs[i].split('.')[0]
             f.write('{},'.format(img_name))
             for j in range(len(out)):
                 if j == len(out) - 1: 
@@ -73,8 +77,8 @@ def dump_csv(results, data_path, result_filepath):
 if __name__ == '__main__':
     args = create_argparse().parse_args()
 
-    data_path = osp.join(os.getcwd(), '..', 'data', 'landmark', 'features_public', 'attributes')
-    combine_path = osp.join(os.getcwd(), '..', 'data', 'landmark', 'features_public', 'combined_data')
+    data_path = osp.join(os.getcwd(), '..', 'data', 'landmark', 'features_public', 'raws')
+    combine_path = osp.join(os.getcwd(), '..', 'data', 'landmark', 'features_public', 'combined_data_raw')
     combine_features(data_path, combine_path)
     
     checkpoint_dir = osp.join(os.getcwd(), '..', 'data', 'landmark', 'checkpoint')

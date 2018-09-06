@@ -7,13 +7,13 @@ import os.path as osp
 
 def get_activate_function(func_name):
     if func_name == 'leaky':
-        func = F.leaky_relu
+#        func = F.leaky_relu
+        func = nn.LeakyReLU()
     elif func_name == 'elu':
-        func = F.elu
-    elif func_name == 'relu':
-        func = F.relu
+#        func = F.elu
+        func = nn.ELU()
     elif func_name == 'sigmoid':
-        func = F.sigmoid
+        func = nn.Sigmoid()
     else:
         ValueError('Undetected function name {}'.format(func_name))
     return func
@@ -28,36 +28,20 @@ class fcnet(nn.Module):
         # Network layer definition
         self.dropout = nn.Dropout(0.2)
         self.activate_func = get_activate_function('elu')
-
         self.bn0 = nn.BatchNorm1d(in_dim)
         
-        self.fc1 = fully_block(in_dim, hidden_dim)
-        self.bn1 = nn.BatchNorm1d(hidden_dim)
+        self.fc_block = fully_block([in_dim, hidden_dim, hidden_dim, out_dim], self.activate_func)
 
-        self.fc2 = fully_block(hidden_dim, hidden_dim)
-        self.bn2 = nn.BatchNorm1d(hidden_dim)
-
-        self.fc3 = fully_block(hidden_dim, out_dim)
-        self.softmax = nn.Softmax()
         self.sigmoid = nn.Sigmoid()
+        self.softmax = nn.Softmax()
 
 
     def forward(self, x):
         out = x
-
         out = self.bn0(out)
-        #out = self.dropout(out)
-        out = self.fc1(out)
-        out = self.activate_func(out)
-        out = self.bn1(out)
+#        out = self.dropout(out)
 
-        #out = self.dropout(out)
-        out = self.fc2(out)
-        out = self.activate_func(out)
-        out = self.bn2(out)
-
-        #out = self.dropout(out)
-        out = self.fc3(out)
+        out = self.fc_block(out)
 #        out = self.activate_func(out)
         out = self.softmax(out)
 #        out = self.sigmoid(out)
@@ -66,10 +50,25 @@ class fcnet(nn.Module):
 
 class fully_block(nn.Module):
 
-    def __init__(self, in_dim, out_dim):
+    def __init__(self, dims, activate_func):
         super(fully_block, self).__init__()
-        self.fc = nn.Linear(in_dim, out_dim)
+        last = None
+        fcs = []
+#        gg = dims[-1] # bad code
+        for i, cur_dim in enumerate(dims):
+            if (last != None):
+                fcs.append(nn.Linear(last, cur_dim))
+                fcs.append(activate_func)
+                fcs.append(nn.BatchNorm1d(cur_dim))
+#                if i  == len(dims) - 1:
+#                    fcs.append(nn.Dropout(0.2))
+#                    #if gg!= cur_dim:
+                #    fcs.append(activate_func)
+                #    fcs.append(nn.BatchNorm1d(cur_dim))
+                #    # Try adding dropout layer
+            last = cur_dim
 
+        self.fc = nn.Sequential(*fcs)
 
     def forward(self, x):
         return self.fc(x)

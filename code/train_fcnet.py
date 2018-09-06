@@ -5,13 +5,16 @@ import os.path as osp
 import os
 import torch.nn as nn
 
-def fullTest(N, top):
+def fullTest(N, top, step):
+#    if (step == 10000):
+#        import ipdb
+#        ipdb.set_trace()
     cnt = 0
     matched = []
     while cnt < data.cnt_val:
-        x_test, y_test = data.next_test()
+        x_test, y_test = data.next_val()
         x_test = torch.Tensor(x_test).to(device)
-        y_test = torch. Tensor(y_test).to(device)
+        y_test = torch.Tensor(y_test).to(device)
         cnt += len(y_test)
         result = N(x_test)
         _, predicts = result.sort(1)
@@ -23,7 +26,7 @@ def fullTest(N, top):
     score = np.array(matched).sum() * 1.0 / data.cnt_val
     return score
 
-def calcTrainScore(N, top):
+def calcTrainScore(N, top, step = -1):
     _, predicts = out.sort(1)
     predicts = predicts[:,-top:]
     ground_truth = y.argmax(1)
@@ -34,7 +37,7 @@ def calcTrainScore(N, top):
 if __name__ == '__main__':
     np.random.seed(1234)
     torch.manual_seed(1234)
-    combined_path = osp.join(os.getcwd(), '..', 'data', 'landmark', 'features', 'combined_data')
+    combined_path = osp.join(os.getcwd(), '..', 'data', 'landmark', 'features_rn50', 'combined_data_raw')
     json_path = osp.join(os.getcwd(), '..', 'data', 'landmark', 'train_val2018.json')
     checkpoint_dir = osp.join(os.getcwd(), '..', 'data', 'landmark', 'checkpoint')
 
@@ -44,8 +47,8 @@ if __name__ == '__main__':
     save_step = 1000
     batch_size = 1000
     learning_rate = 1e-4
-    in_dim = 102
-    hidden_dim = 2000
+    in_dim = 2048
+    hidden_dim = 512
     out_dim = 103
 
     device = 'cpu'
@@ -56,7 +59,8 @@ if __name__ == '__main__':
     data = DataLoader(batch_size, combined_path)
     N = N.to(device)
 #    cost_func = nn.MSELoss()
-    cost_func = nn.NLLLoss()
+#    cost_func = nn.NLLLoss()
+    cost_func = nn.BCELoss()
     optim = torch.optim.Adam(N.parameters(), lr=learning_rate)
 
     best_score = 0
@@ -67,18 +71,19 @@ if __name__ == '__main__':
         y = torch. Tensor(y).to(device)
         tam = y.argmax(1)
         out = N(x)
-        loss = cost_func(out, tam)
+        #loss = cost_func(out, tam)
+        loss = cost_func(out, y)
         loss.backward()
         optim.step()
         N.zero_grad()
 
         if i % print_step == 0:
-            score1 = fullTest(N,1)           
-            score3 = fullTest(N,3)           
+            score1 = fullTest(N,1, i)           
+            score3 = fullTest(N,3, i)           
             # Calculate training accuracy score to prevent overfit 
 
-            score_train1 = calcTrainScore(N, 1)
-            score_train3 = calcTrainScore(N, 3)
+            score_train1 = calcTrainScore(N, 1, i)
+            score_train3 = calcTrainScore(N, 3, i)
             print("Iters: {}  - Loss: {} - Accuracy Train 3 and 1: {} {} - Accuracy Test 3 1: {} {}".format(i, loss, score_train3, score_train1, score3, score1))
             save_checkpoint(N, optim, score3, checkpoint_dir, str(i))
 

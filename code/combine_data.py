@@ -4,13 +4,14 @@ import json
 import os
 
 
-def load_data(data_path, data_list, in_dim=102, num_cls=103):
+def load_data(data_path, data_list, in_dim=2048, num_cls=103):
     num_data = len(data_list)
     x = np.empty((num_data, in_dim), dtype=np.float)
     y = np.empty(num_data, dtype=np.uint8)
     for i, data in enumerate(data_list):
         id, category = int(data['id']), int(data['category'])
         feature_data_path = osp.join(data_path, str(category), str(id) + '.npy')
+        print(feature_data_path)
         if osp.isfile(feature_data_path):
             _data = np.load(feature_data_path)
         x[i] = _data
@@ -35,9 +36,9 @@ def parse_json_info(json_fpath):
 
 
 if __name__ == '__main__':
-    data_path = osp.join(os.getcwd(), '..', 'data', 'landmark', 'features', 'attributes')
+    data_path = osp.join(os.getcwd(), '..', 'data', 'landmark', 'features_rn50', 'raws')
     json_fpath = osp.join(os.getcwd(), '..', 'data', 'landmark', 'train_val2018.json')
-    combine_path = osp.join(os.getcwd(), '..', 'data', 'landmark', 'features', 'combined_data')
+    combine_path = osp.join(os.getcwd(), '..', 'data', 'landmark', 'features_rn50', 'combined_data_raw')
 
     data = parse_json_info(json_fpath)
     x, y = load_data(data_path, data)
