@@ -5,10 +5,7 @@ import os.path as osp
 import os
 import torch.nn as nn
 
-def fullTest(N, top, step):
-#    if (step == 10000):
-#        import ipdb
-#        ipdb.set_trace()
+def eval_test(N, top, step):
     cnt = 0
     matched = []
     while cnt < data.cnt_val:
@@ -25,6 +22,7 @@ def fullTest(N, top, step):
         matched += m
     score = np.array(matched).sum() * 1.0 / data.cnt_val
     return score
+
 
 def calcTrainScore(N, top, step = -1):
     _, predicts = out.sort(1)
@@ -47,9 +45,9 @@ if __name__ == '__main__':
     save_step = 1000
     batch_size = 1000
     learning_rate = 1e-4
-    in_dim = 2048
-    hidden_dim = 512
-    out_dim = 103
+    in_dim = 512
+    hidden_dim = 1024
+    out_dim = 30
 
     device = 'cpu'
     if torch.cuda.is_available():
@@ -78,15 +76,13 @@ if __name__ == '__main__':
         N.zero_grad()
 
         if i % print_step == 0:
-            score1 = fullTest(N,1, i)           
-            score3 = fullTest(N,3, i)           
+            score = eval_test(N, 1, i)           
             # Calculate training accuracy score to prevent overfit 
 
-            score_train1 = calcTrainScore(N, 1, i)
-            score_train3 = calcTrainScore(N, 3, i)
-            print("Iters: {}  - Loss: {} - Accuracy Train 3 and 1: {} {} - Accuracy Test 3 1: {} {}".format(i, loss, score_train3, score_train1, score3, score1))
-            save_checkpoint(N, optim, score3, checkpoint_dir, str(i))
+            score_train = calcTrainScore(N, 1, i)
+            print("Iters: {}  - Loss: {} - Accuracy Train: {} - Accuracy Test: {}".format(i, loss, score_train, score))
+            save_checkpoint(N, optim, score, checkpoint_dir, str(i))
 
-            if score3 > best_score:
-                best_score = score3
-                save_checkpoint(N, optim, score3, checkpoint_dir, "best_weights.chohuu")
+            if score > best_score:
+                best_score = score
+                save_checkpoint(N, optim, score, checkpoint_dir, "best.weights")
