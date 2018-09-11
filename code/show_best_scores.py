@@ -5,9 +5,9 @@ import torch
 import sys
 
 
-checkpoint_path = '/home/infection/zalo2018-landmark-challenge/data/landmark/checkpoint'
-#chckpoint_filename = 'best_weights.chohuu'
-chckpoint_filename = sys.argv[1]
+checkpoint_path = '/home/jokernvt96/2DSceneCode/data/checkpoint'
+chckpoint_filename = 'best.weights'
+#chckpoint_filename = sys.argv[1]
 chckpoint_filepath = osp.join(checkpoint_path, chckpoint_filename)
 
 checkpoint = torch.load(chckpoint_filepath)

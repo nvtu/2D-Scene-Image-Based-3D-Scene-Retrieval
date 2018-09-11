@@ -32,13 +32,19 @@ def eval_train(N, top, step = -1):
     score_train = np.array(m).sum() * 1.0 / len(ground_truth)
     return score_train
 
+
+def create_folder(fold_path):
+    if not osp.exists(fold_path):
+       os.makedirs(fold_path)
+
+
 if __name__ == '__main__':
     np.random.seed(1234)
     torch.manual_seed(1234)
-    combined_path = osp.join(os.getcwd(), '..', 'data', 'landmark', 'features_rn50', 'combined_data_raw')
-    json_path = osp.join(os.getcwd(), '..', 'data', 'landmark', 'train_val2018.json')
-    checkpoint_dir = osp.join(os.getcwd(), '..', 'data', 'landmark', 'checkpoint')
-
+    combined_path = osp.join(os.getcwd(), '..', 'data', 'combined_raw')
+    #json_path = osp.join(os.getcwd(), '..', 'data', 'train_val2018.json')
+    checkpoint_dir = osp.join(os.getcwd(), '..', 'data', 'checkpoint')
+    create_folder(checkpoint_dir)
 
     total_steps = 256000
     print_step = 1000
@@ -81,7 +87,7 @@ if __name__ == '__main__':
 
             score_train = eval_train(N, 1, i)
             print("Iters: {}  - Loss: {} - Accuracy Train: {} - Accuracy Test: {}".format(i, loss, score_train, score))
-            save_checkpoint(N, optim, score, checkpoint_dir, str(i))
+            #save_checkpoint(N, optim, score, checkpoint_dir, str(i))
 
             if score > best_score:
                 best_score = score

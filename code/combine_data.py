@@ -20,7 +20,7 @@ def load_data(data_path, data_list, in_dim=512, num_cls=103):
     for i, data in enumerate(data_list):
         id, category = int(data['id']), int(data['category'])
         feature_data_path = osp.join(data_path, str(id) + '.npy')
-        print(feature_data_path)
+    #    print(feature_data_path)
         if osp.isfile(feature_data_path):
             _data = np.load(feature_data_path)
             x[i] = _data
@@ -55,16 +55,19 @@ def load_info_file(data_info_path, filename):
     classes = []
     content = [line.rstrip() for line in open(data_info_filepath, 'r').readlines()][3:]
     cur_pt = 0
+    cls_id = 0
     while cur_pt < len(content):
-        label, cls_id, num_items = content[cur_pt].split()
+        label, _, num_items = content[cur_pt].split()
+        print(label, cls_id)
         classes.append(label)
-        cls_id, num_items = int(cls_id), int(num_items)	
+        num_items = int(num_items)	
         for i in range(num_items):
             cur_pt += 1
             id = int(content[cur_pt])
             item = {'id' : id, 'category' : cls_id}
             data.append(item)
         cur_pt += 3
+        cls_id += 1
     return data, classes
 
 

@@ -15,7 +15,7 @@ def create_argparse():
     return parser
 
 
-def combine_features(data_path, combine_path, in_dim=2048):
+def combine_features(data_path, combine_path, in_dim=512):
     combined_filename = 'x_attributes.npy'
     combine_path = osp.join(combine_path, combined_filename)
     if osp.isfile(combine_path):
@@ -39,11 +39,10 @@ def load_network(checkpoint_dir, filename):
     return N
 
 
-def eval(N, data_path):
+def eval(N, top, data_path):
     data = DataLoader(N.batch_size, data_path, public_test=True)
     cnt = 0
     results = []
-    top = 3
     device = 'cpu'
     if torch.cuda.is_available():
         device = 'cuda'
@@ -74,18 +73,26 @@ def dump_csv(results, data_path, result_filepath):
                     f.write('{} '.format(out[j]))
 
 
+def create_folder(fold_path):
+    if not osp.exists(fold_path):
+       os.makedirs(fold_path)
+
+
 if __name__ == '__main__':
     args = create_argparse().parse_args()
+    in_dim = 512
 
-    data_path = osp.join(os.getcwd(), '..', 'data', 'landmark', 'features_public', 'raws')
-    combine_path = osp.join(os.getcwd(), '..', 'data', 'landmark', 'features_public', 'combined_data_raw')
-    combine_features(data_path, combine_path)
+    data_path = osp.join(os.getcwd(), '..', 'data_test', 'raws')
+    combine_path = osp.join(os.getcwd(), '..', 'data_test', 'combined_raw')
+    create_folder(combine_path)
+    combine_features(data_path, combine_path, in_dim=in_dim)
     
-    checkpoint_dir = osp.join(os.getcwd(), '..', 'data', 'landmark', 'checkpoint')
+    checkpoint_dir = osp.join(os.getcwd(), '..', 'data', 'checkpoint')
     checkpoint_filename = args.checkpoint_filepath
     N = load_network(checkpoint_dir, checkpoint_filename)
 
-    results = eval(N, combine_path)
-    result_filepath = osp.join(os.getcwd(), '..', 'data', 'landmark', 'results')
+    results = eval(N, 1, combine_path)
+    result_filepath = osp.join(os.getcwd(), '..', 'data_test', 'results')
+    create_folder(result_filepath)
     result_filename = args.result_filename
     dump_csv(results, data_path, osp.join(result_filepath, result_filename))
