@@ -24,7 +24,7 @@ def eval_test(N, top, step):
     return score
 
 
-def calcTrainScore(N, top, step = -1):
+def eval_train(N, top, step = -1):
     _, predicts = out.sort(1)
     predicts = predicts[:,-top:]
     ground_truth = y.argmax(1)
@@ -79,7 +79,7 @@ if __name__ == '__main__':
             score = eval_test(N, 1, i)           
             # Calculate training accuracy score to prevent overfit 
 
-            score_train = calcTrainScore(N, 1, i)
+            score_train = eval_train(N, 1, i)
             print("Iters: {}  - Loss: {} - Accuracy Train: {} - Accuracy Test: {}".format(i, loss, score_train, score))
             save_checkpoint(N, optim, score, checkpoint_dir, str(i))
 
