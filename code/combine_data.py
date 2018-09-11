@@ -45,12 +45,21 @@ def to_one_hot(y, num_cls):
 
 
 def load_info_file(data_info_path):
+    data = []
+    classes = []
     content = [line.rstrip() for line in open(data_info_path, 'r').readlines()][3:]
     cur_pt = 0
     while cur_pt < len(content):
-        label, id, num_items = content[cur_pt].split()
-	id, num_items = int(id), int(num_items)	
-	for i in range(num_items):
+        label, cls_id, num_items = content[cur_pt].split()
+        classes.append(label)
+        cls_id, num_items = int(cls_id), int(num_items)	
+        for i in range(num_items):
+            cur_pt += 1
+            id = int(content[cur_pt])
+            item = {'id' : id, 'category' : cls_id}
+            data.append(item)
+        cur_pt += 2
+    return data, classes
 
 
 
@@ -60,8 +69,15 @@ if __name__ == '__main__':
     # combine_path = osp.join(os.getcwd(), '..', 'data', 'landmark', 'features_rn50', 'combined_data_raw')
 
     # data = parse_json_info(json_fpath)
+    args = create_argparse().parse_args()
+    data, classes = load_info_file(args.data_info_path)
+    cls_filepath = osp.join(args.data_path, 'classes.txt')
+    if not osp.exists(cls_filepath):
+        with open(cls_filepath, 'w') as f:
+            for i in range(len(classes)):
+                f.write('{}\n'.format(classes[i]))
 
-    x, y = load_data(data_path, data)
+    x, y = load_data(args.data_path, data)
 
-    np.save(osp.join(combine_path, 'x_attributes.npy'), x)
-    np.save(osp.join(combine_path, 'y_attributes.npy'), y)
+    np.save(osp.join(args.combine_path, 'x_attributes.npy'), x)
+    np.save(osp.join(args.combine_path, 'y_attributes.npy'), y)
