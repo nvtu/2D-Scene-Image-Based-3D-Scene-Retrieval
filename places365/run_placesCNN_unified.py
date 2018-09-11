@@ -86,14 +86,14 @@ def returnTF():
 def load_model():
     # this model has a last conv feature map as 14x14
 
-#    model_file = 'wideresnet18_places365.pth.tar'
-    model_file = 'resnet50_places365.pth.tar'
-#    if not os.access(model_file, os.W_OK):
-#        os.system('wget http://places2.csail.mit.edu/models_places365/' + model_file)
-#        os.system('wget https://raw.githubusercontent.com/csailvision/places365/master/wideresnet.py')
+    model_file = 'wideresnet18_places365.pth.tar'
+#    model_file = 'resnet50_places365.pth.tar'
+    if not os.access(model_file, os.W_OK):
+        os.system('wget http://places2.csail.mit.edu/models_places365/' + model_file)
+        os.system('wget https://raw.githubusercontent.com/csailvision/places365/master/wideresnet.py')
 
     import wideresnet
-    model = wideresnet.resnet50(num_classes=365)
+    model = wideresnet.resnet18(num_classes=365)
     checkpoint = torch.load(model_file, map_location=lambda storage, loc: storage)
     state_dict = {str.replace(k,'module.',''): v for k,v in checkpoint['state_dict'].items()}
     model.load_state_dict(state_dict)
@@ -125,6 +125,8 @@ def create_folder(fold_path):
         os.makedirs(fold_path)
 
 
+classes, _, labels_attribute, W_attribute = load_labels()
+
 def create_argparser():
     parser = argparse.ArgumentParser()
     parser.add_argument('image_folder', help="Folder contains scene images")
@@ -135,15 +137,15 @@ def create_argparser():
     parser.add_argument('--category-folder-log', dest='category_folder_log', help='Folder contains human-readable data of scene features')
     return parser
 
-def asyncfunc(root, f, tf, W_attribute, model, features_blobs):
+def forward(root, f, tf, W_attribute, model, features_blobs):
     print(f)
 
 #        return model
 
     image_path = osp.join(root, f)
-    attribute_filepath = image_path.replace(args.image_folder, args.attribute_folder)[:-4] + '.npy'
-    category_filepath = image_path.replace(args.image_folder, args.category_folder)[:-4] + '.npy'
-    raw_filepath = image_path.replace(args.image_folder, args.raw_folder)[:-4] + '.npy'
+    attribute_filepath = image_path.replace(args.image_folder, args.attribute_folder).split('.')[0] + '.npy'
+    category_filepath = image_path.replace(args.image_folder, args.category_folder).split('.')[0] + '.npy'
+    raw_filepath = image_path.replace(args.image_folder, args.raw_folder).split('.')[0] + '.npy'
 
     # Do not process image which already have result
     if osp.exists(raw_filepath):
@@ -164,7 +166,7 @@ def asyncfunc(root, f, tf, W_attribute, model, features_blobs):
 
     # forward pass
     logit = model.forward(input_img)
-    #h_x = F.softmax(logit, 1).data.squeeze()
+    h_x = F.softmax(logit, 1).data.squeeze()
 
     # print('RESULT ON {}'.format(image_path))
     # # output the IO prediction
@@ -178,7 +180,7 @@ def asyncfunc(root, f, tf, W_attribute, model, features_blobs):
         probs, idx = h_x.sort(0, True)
         probs = probs.numpy()
         idx = idx.numpy()
-        category_file_logpath = image_path.replace(args.image_folder, args.category_folder_log)[:-4] + '.txt'
+        category_file_logpath = image_path.replace(args.image_folder, args.category_folder_log).split('.')[0] + '.txt'
         with open(category_file_logpath, 'w') as f:
         # output the prediction of scene category
             print >> f, '--SCENE CATEGORIES:'
@@ -186,24 +188,24 @@ def asyncfunc(root, f, tf, W_attribute, model, features_blobs):
                 print >> f, '{:.3f} -> {}'.format(probs[i], classes[idx[i]])
 
     # output scene category score
-    #np.save(category_filepath, h_x.cpu().numpy())
+    np.save(category_filepath, h_x.cpu().numpy())
     
     # output the scene attributes 
-    #responses_attribute = W_attribute.dot(features_blobs[1]) 
-    #np.save(attribute_filepath, responses_attribute) 
+    responses_attribute = W_attribute.dot(features_blobs[1]) 
+    np.save(attribute_filepath, responses_attribute) 
 
     # output raw features
     np.save(raw_filepath, features_blobs[1])
     
     if args.attribute_folder_log != None:
-        attribute_file_logpath = image_path.replace(args.image_folder, args.attribute_folder_log)[:-4] + '.txt'
+        attribute_file_logpath = image_path.replace(args.image_folder, args.attribute_folder_log).split('.')[0] + '.txt'
         idx_a = np.argsort(responses_attribute)
         with open(attribute_file_logpath, 'w') as f:
             print >> f, '--SCENE ATTRIBUTES:'
             print >> f, ', '.join([labels_attribute[idx_a[i]] for i in range(-1,-10,-1)])
 
 
-def asyncgroup(params, model):
+def group_async_task(params, model):
     features_blobs = []
     def hook_feature(module, input, output):
         features_blobs.append(np.squeeze(output.data.cpu().numpy()))
@@ -213,13 +215,12 @@ def asyncgroup(params, model):
     for name in features_names:
         model._modules.get(name).register_forward_hook(hook_feature)
     for param in params:
-        asyncfunc(*param, model = model, features_blobs = features_blobs)
+        forward(*param, model = model, features_blobs = features_blobs)
         features_blobs = []
 
 def run_placesCNN_extract_feature(args):
     # load the labels
     # classes, labels_IO, labels_attribute, W_attribute = load_labels()
-    classes, _, labels_attribute, W_attribute = load_labels()
 
     # load the model
     model = load_model()
@@ -261,7 +262,7 @@ def run_placesCNN_extract_feature(args):
 
         for f in sorted(files):
             image_path = osp.join(root, f)
-            raw_filepath = image_path.replace(args.image_folder, args.raw_folder)[:-4] + '.npy'
+            raw_filepath = image_path.replace(args.image_folder, args.raw_folder).split('.')[0] + '.npy'
 
             # Do not process image which already have result
             if osp.exists(raw_filepath):
@@ -273,10 +274,10 @@ def run_placesCNN_extract_feature(args):
     p = []
     for i in range(num_processes):
         subparams = params[i*Nperprocess: min(i*Nperprocess + Nperprocess, params.__len__())]
-        p.append(Process(target=asyncgroup, args=(subparams, model)))
+        p.append(Process(target=group_async_task, args=(subparams, model)))
         p[-1].start()
-    for i in p:
-        i.join()
+    for task_group in p:
+        task_group.join()
 # generate class activation mapping
 # print('Class activation map is saved as cam.jpg')
 # CAMs = returnCAM(features_blobs[0], weight_softmax, [idx[0]])
